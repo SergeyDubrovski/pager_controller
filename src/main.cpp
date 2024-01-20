@@ -93,7 +93,6 @@ void loop(void)
 }*/
 
 #include <Arduino.h>
-
 #include <ESP8266WiFi.h>
 #include <WebSocketsClient.h>
 #include <LiquidCrystal_I2C.h>
@@ -106,27 +105,26 @@ const char *password = "Serg1990"; // Minsk@Ultra
 unsigned long messageInterval = 5000;
 bool connected = false;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-#define DEBUG_SERIAL Serial
+
 
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 {
   switch (type)
   {
   case WStype_DISCONNECTED:
-    DEBUG_SERIAL.printf("[WSc] Disconnected!\n");
     connected = false;
     break;
   case WStype_CONNECTED:
   {
-    DEBUG_SERIAL.printf("[WSc] Connected to url: %s\n", payload);
+    Serial.printf("[WSc] Connected to url: %s\n", payload);
     connected = true;
     // send message to server when Connected
-    DEBUG_SERIAL.println("[WSc] SENT: Connected");
+    Serial.println("[WSc] SENT: Connected");
     webSocket.sendTXT("Connected");
   }
   break;
   case WStype_TEXT:
-    DEBUG_SERIAL.printf("[WSc] RESPONSE: %s\n", payload);
+    Serial.printf("[WSc] RESPONSE: %s\n", payload);
     webSocket.sendTXT(payload);
     String str = (char *)payload;
     lcd.clear();
@@ -164,20 +162,10 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 
 void setup()
 {
-  DEBUG_SERIAL.begin(9600);
+  Serial.begin(9600);
 
   //  DEBUG_SERIAL.setDebugOutput(true);
 
-  DEBUG_SERIAL.println();
-  DEBUG_SERIAL.println();
-  DEBUG_SERIAL.println();
-
-  for (uint8_t t = 4; t > 0; t--)
-  {
-    DEBUG_SERIAL.printf("[SETUP] BOOT WAIT %d...\n", t);
-    DEBUG_SERIAL.flush(); 
-    delay(1000);
-  }
 
   WiFi.begin(ssid, password);
 
@@ -186,8 +174,8 @@ void setup()
     delay(500);
     Serial.print(".");
   }
-  DEBUG_SERIAL.print("Local IP: ");
-  DEBUG_SERIAL.println(WiFi.localIP());
+  Serial.print("Local IP: ");
+  Serial.println(WiFi.localIP());
   // server address, port and URL
   webSocket.begin("oxsedu.site", 81, "/api/esp");
 
@@ -199,16 +187,16 @@ void setup()
   lcd.print(WiFi.localIP());
 }
 
-unsigned long lastUpdate = millis();
+//unsigned long lastUpdate = millis();
 
 void loop()
 {
   webSocket.loop();
-  if (connected && lastUpdate + messageInterval < millis())
+  if (connected )//&& lastUpdate + messageInterval < millis()
   {
-    DEBUG_SERIAL.println("[WSc] SENT: Simple js client message!!");
-    webSocket.sendTXT("Simple js client message!!");
-
-    lastUpdate = millis();
+    //Serial.println("[WSc] SENT: Simple js client message!!");
+    //webSocket.sendTXT("Simple js client message!!");
+   
+    //lastUpdate = millis();
   }
 }
