@@ -96,6 +96,7 @@ void loop(void)
 #include <ESP8266WiFi.h>
 #include <WebSocketsClient.h>
 #include <LiquidCrystal_I2C.h>
+#include <LittleFS.h>
 
 WebSocketsClient webSocket;
 
@@ -105,7 +106,6 @@ const char *password = "Serg1990"; // Minsk@Ultra
 unsigned long messageInterval = 5000;
 bool connected = false;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
-
 
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length)
 {
@@ -164,8 +164,45 @@ void setup()
 {
   Serial.begin(9600);
 
-  //  DEBUG_SERIAL.setDebugOutput(true);
+  //------
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
 
+  File file = LittleFS.open("/data", "r");
+  if (!file)
+  {
+    Serial.println("Failed to open file for reading");
+    Serial.println(LittleFS.exists("/data/text.txt"));
+    Serial.println(LittleFS.exists("/text.txt"));
+    // Serial.println(LittleFS.format());
+  }
+
+  Serial.println("File Content:");
+  while (file.available())
+  {
+    Serial.write(file.read());
+  }
+
+  Dir dir = LittleFS.openDir("/");
+  Serial.print(dir.fileName());
+  while (dir.next())
+  {
+    Serial.print(dir.fileName());
+    if (dir.fileSize())
+    {
+      File f = dir.openFile("r");
+      Serial.println(f.size());
+    }
+  }
+
+  file.close();
+
+  //-------
+
+  //  DEBUG_SERIAL.setDebugOutput(true);
 
   WiFi.begin(ssid, password);
 
@@ -187,16 +224,16 @@ void setup()
   lcd.print(WiFi.localIP());
 }
 
-//unsigned long lastUpdate = millis();
+// unsigned long lastUpdate = millis();
 
 void loop()
 {
   webSocket.loop();
-  if (connected )//&& lastUpdate + messageInterval < millis()
+  if (connected) //&& lastUpdate + messageInterval < millis()
   {
-    //Serial.println("[WSc] SENT: Simple js client message!!");
-    //webSocket.sendTXT("Simple js client message!!");
-   
-    //lastUpdate = millis();
+    // Serial.println("[WSc] SENT: Simple js client message!!");
+    // webSocket.sendTXT("Simple js client message!!");
+
+    // lastUpdate = millis();
   }
 }
